@@ -5,16 +5,17 @@
 [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Firebase](https://img.shields.io/badge/Firebase-v13-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-Live_Demo-22c55e?logo=github)](https://mehdi7869.github.io/findit/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> A modern, AI-powered lost and found web platform tailored for university campuses. **FINDIT** connects students, faculty, and campus security through an automated multi-factor matching engine, anti-fraud verification workflows, and real-time alerts.
+> A modern, intelligent lost and found web platform tailored for university campuses. **FINDIT** connects students, faculty, and campus security through an automated multi-factor matching engine, anti-fraud verification workflows, and real-time alerts.
 
 ---
 
 ## 🌐 Live Demo & Repository
 
-- **Live Application:** [Google AI Studio Demo](https://ai.studio/apps/91397e5e-c519-4f9a-8af4-b2cc91cfd173)
-- **GitHub Repository:** [Mehdi7869/findit](https://github.com/Mehdi7869/findit)
+- **Live Application (GitHub Pages):** [https://mehdi7869.github.io/findit/](https://mehdi7869.github.io/findit/)
+- **GitHub Repository:** [https://github.com/Mehdi7869/findit](https://github.com/Mehdi7869/findit)
 
 ---
 
@@ -48,7 +49,7 @@
 - **Styling & UI:** [Tailwind CSS v4](https://tailwindcss.com/), [Lucide React Icons](https://lucide.dev/), [Motion (Framer Motion)](https://motion.dev/)
 - **3D & Visuals:** [Three.js](https://threejs.org/) (Interactive 3D logo and canvas mark)
 - **Backend & Database:** [Firebase Firestore](https://firebase.google.com/docs/firestore), [Firebase Authentication](https://firebase.google.com/docs/auth)
-- **AI & Scoring:** Custom Weighted Similarity & Campus Zone Graph Matching Engine
+- **Deployment:** [GitHub Pages](https://pages.github.com/) & GitHub Actions
 
 ---
 
@@ -56,6 +57,7 @@
 
 ```text
 findit/
+├── .github/workflows/      # Automated GitHub Actions (GitHub Pages deployment)
 ├── src/
 │   ├── components/         # Reusable UI components (Layout, LogoMark, MatchScoreDisplay)
 │   ├── context/            # AuthContext & User state management
@@ -94,7 +96,7 @@ findit/
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18.0.0 or higher recommended)
-- [npm](https://www.npmjs.com/) or [bun](https://bun.sh/)
+- [npm](https://www.npmjs.com/)
 
 ### 1. Clone the Repository
 
@@ -117,17 +119,6 @@ Create a `.env` or `.env.local` file based on `.env.example`:
 cp .env.example .env.local
 ```
 
-Populate with your Firebase project credentials:
-
-```env
-VITE_FIREBASE_API_KEY=your_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
-
 ### 4. Run Development Server
 
 ```bash
@@ -142,27 +133,6 @@ Visit `http://localhost:3000` in your browser.
 npm run build
 npm run preview
 ```
-
----
-
-## 🔒 Security & Privacy
-
-FINDIT includes enterprise-grade [firestore.rules](firestore.rules) protecting student privacy:
-- Private contact details (phone numbers, campus IDs) are stored in restricted subcollections only visible to owners and administrators.
-- Verification questions and claim answers are gated to prevent unauthorized access.
-- Strict validation rules ensure all data fields meet schema requirements.
-
----
-
-## 🤝 Contributing
-
-Contributions make the open-source community an amazing place to learn, inspire, and create! Any contributions you make are **greatly appreciated**.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m "Add some AmazingFeature"`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ---
 
