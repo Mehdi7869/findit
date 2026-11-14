@@ -1,0 +1,260 @@
+{
+  "entities": {
+    "UserPublicProfile": {
+      "title": "User Public Profile",
+      "description": "Public campus directory profile without PII.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "displayName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "role": { "type": "string", "enum": ["student", "faculty"] },
+        "department": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "role", "department", "photoURL", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "User Private PII",
+      "description": "Private user contact details and campus ID isolated from public reads.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "minLength": 3, "maxLength": 200 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "campusId": { "type": "string", "maxLength": 40 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "phone", "campusId", "updatedAt"]
+    },
+    "AdminRecord": {
+      "title": "Admin Record",
+      "description": "Authoritative admin membership document.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "grantedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "grantedAt"]
+    },
+    "ItemReport": {
+      "title": "Lost or Found Item Report",
+      "description": "Public item listing for campus lost and found discovery and matching.",
+      "type": "object",
+      "properties": {
+        "reportId": { "type": "string", "minLength": 5, "maxLength": 32, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "type": { "type": "string", "enum": ["lost", "found"] },
+        "reporterId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "reporterName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "reporterRole": { "type": "string", "enum": ["student", "faculty"] },
+        "itemName": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Electronics",
+            "Bags & Backpacks",
+            "Books & Notes",
+            "ID Cards & Keys",
+            "Water Bottles & Gear",
+            "Clothing & Accessories",
+            "Other"
+          ]
+        },
+        "description": { "type": "string", "minLength": 5, "maxLength": 1200 },
+        "location": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "eventDate": { "type": "string", "minLength": 8, "maxLength": 30 },
+        "eventTime": { "type": "string", "maxLength": 20 },
+        "color": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "characteristics": { "type": "string", "maxLength": 400 },
+        "keywords": { "type": "array" },
+        "photoURL": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["open", "matched", "claim_pending", "returned", "closed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "reportId",
+        "type",
+        "reporterId",
+        "reporterName",
+        "reporterRole",
+        "itemName",
+        "category",
+        "description",
+        "location",
+        "eventDate",
+        "eventTime",
+        "color",
+        "characteristics",
+        "keywords",
+        "photoURL",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ReportPrivateDetails": {
+      "title": "Report Private Verification Details",
+      "description": "Sensitive identifying details and contact preferences hidden from public browse.",
+      "type": "object",
+      "properties": {
+        "reportId": { "type": "string", "minLength": 5, "maxLength": 32, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "reporterId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "additionalDetails": { "type": "string", "maxLength": 1000 },
+        "contactPreference": { "type": "string", "maxLength": 120 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["reportId", "reporterId", "additionalDetails", "contactPreference", "updatedAt"]
+    },
+    "SmartMatch": {
+      "title": "Smart Match Result",
+      "description": "Weighted confidence score connecting a lost report and a found report.",
+      "type": "object",
+      "properties": {
+        "matchId": { "type": "string", "minLength": 3, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "lostReportId": { "type": "string", "minLength": 5, "maxLength": 32, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "foundReportId": { "type": "string", "minLength": 5, "maxLength": 32, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "lostReporterId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "foundReporterId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "lostItemName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "foundItemName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "confidenceScore": { "type": "number" },
+        "confidenceTier": { "type": "string", "enum": ["high", "potential", "low"] },
+        "breakdown": { "type": "object" },
+        "status": { "type": "string", "enum": ["suggested", "claim_initiated", "dismissed", "resolved"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "matchId",
+        "lostReportId",
+        "foundReportId",
+        "lostReporterId",
+        "foundReporterId",
+        "lostItemName",
+        "foundItemName",
+        "confidenceScore",
+        "confidenceTier",
+        "breakdown",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ItemClaim": {
+      "title": "Ownership Claim",
+      "description": "Verification claim submitted by a user to recover an item.",
+      "type": "object",
+      "properties": {
+        "claimId": { "type": "string", "minLength": 3, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "reportId": { "type": "string", "minLength": 5, "maxLength": 32, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "reportType": { "type": "string", "enum": ["lost", "found"] },
+        "itemName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "claimantId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "claimantName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "reportOwnerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "ownershipProof": { "type": "string", "minLength": 5, "maxLength": 1200 },
+        "matchId": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "returned"] },
+        "adminNote": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "claimId",
+        "reportId",
+        "reportType",
+        "itemName",
+        "claimantId",
+        "claimantName",
+        "reportOwnerId",
+        "ownershipProof",
+        "matchId",
+        "status",
+        "adminNote",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserNotification": {
+      "title": "User Notification",
+      "description": "Private real-time alert for matches, claims, and returns.",
+      "type": "object",
+      "properties": {
+        "notificationId": { "type": "string", "minLength": 3, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "message": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "type": { "type": "string", "enum": ["match", "claim", "system", "return"] },
+        "relatedId": { "type": "string", "maxLength": 128 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["notificationId", "userId", "title", "message", "type", "relatedId", "read", "createdAt"]
+    },
+    "SupportTicket": {
+      "title": "Help and Support Ticket",
+      "description": "User help request routed to campus security or admins.",
+      "type": "object",
+      "properties": {
+        "ticketId": { "type": "string", "minLength": 3, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "subject": { "type": "string", "minLength": 3, "maxLength": 160 },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Account & Verification",
+            "Report Issue",
+            "Claim Dispute",
+            "Campus Security Desk",
+            "Technical Feedback"
+          ]
+        },
+        "message": { "type": "string", "minLength": 10, "maxLength": 1500 },
+        "status": { "type": "string", "enum": ["open", "in_review", "resolved"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ticketId", "userId", "subject", "category", "message", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPublicProfile" },
+      "description": "Public campus profiles (no PII)."
+    },
+    "/users/{userId}/private/info": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Private PII isolated to owner and admin."
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Admin role registry."
+    },
+    "/reports/{reportId}": {
+      "schema": { "$ref": "#/entities/ItemReport" },
+      "description": "Public lost and found item reports."
+    },
+    "/reports/{reportId}/private/secrets": {
+      "schema": { "$ref": "#/entities/ReportPrivateDetails" },
+      "description": "Sensitive verification details hidden from public."
+    },
+    "/matches/{matchId}": {
+      "schema": { "$ref": "#/entities/SmartMatch" },
+      "description": "Smart Matching Engine confidence records."
+    },
+    "/claims/{claimId}": {
+      "schema": { "$ref": "#/entities/ItemClaim" },
+      "description": "Ownership verification claims and return workflow."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/UserNotification" },
+      "description": "Private real-time user notifications."
+    },
+    "/supportTickets/{ticketId}": {
+      "schema": { "$ref": "#/entities/SupportTicket" },
+      "description": "Help & Support inquiries."
+    }
+  }
+}

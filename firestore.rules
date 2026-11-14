@@ -1,0 +1,471 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'mehndihussain28@gmail.com'
+      );
+    }
+
+    function isValidUserPublic(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'role', 'department', 'photoURL', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'displayName', 'role', 'department', 'photoURL', 'createdAt', 'updatedAt']) &&
+        isValidId(data.uid) &&
+        data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 100 &&
+        data.role in ['student', 'faculty'] &&
+        data.department is string && data.department.size() >= 1 && data.department.size() <= 100 &&
+        data.photoURL is string && data.photoURL.size() <= 1000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivate(data) {
+      return data.keys().hasAll(['uid', 'email', 'phone', 'campusId', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'phone', 'campusId', 'updatedAt']) &&
+        isValidId(data.uid) &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 200 &&
+        data.phone is string && data.phone.size() <= 30 &&
+        data.campusId is string && data.campusId.size() <= 40 &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll([
+          'reportId', 'type', 'reporterId', 'reporterName', 'reporterRole',
+          'itemName', 'category', 'description', 'location', 'eventDate',
+          'eventTime', 'color', 'characteristics', 'keywords', 'photoURL',
+          'status', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'reportId', 'type', 'reporterId', 'reporterName', 'reporterRole',
+          'itemName', 'category', 'description', 'location', 'eventDate',
+          'eventTime', 'color', 'characteristics', 'keywords', 'photoURL',
+          'status', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.reportId) &&
+        data.type in ['lost', 'found'] &&
+        isValidId(data.reporterId) &&
+        data.reporterName is string && data.reporterName.size() >= 1 && data.reporterName.size() <= 100 &&
+        data.reporterRole in ['student', 'faculty'] &&
+        data.itemName is string && data.itemName.size() >= 2 && data.itemName.size() <= 120 &&
+        data.category in [
+          'Electronics',
+          'Bags & Backpacks',
+          'Books & Notes',
+          'ID Cards & Keys',
+          'Water Bottles & Gear',
+          'Clothing & Accessories',
+          'Other'
+        ] &&
+        data.description is string && data.description.size() >= 5 && data.description.size() <= 1200 &&
+        data.location is string && data.location.size() >= 2 && data.location.size() <= 160 &&
+        data.eventDate is string && data.eventDate.size() >= 8 && data.eventDate.size() <= 30 &&
+        data.eventTime is string && data.eventTime.size() <= 20 &&
+        data.color is string && data.color.size() >= 1 && data.color.size() <= 60 &&
+        data.characteristics is string && data.characteristics.size() <= 400 &&
+        data.keywords is list && data.keywords.size() <= 12 &&
+        (data.keywords.size() == 0 || (data.keywords[0] is string && data.keywords[0].size() <= 40)) &&
+        data.photoURL is string && data.photoURL.size() <= 1000 &&
+        data.status in ['open', 'matched', 'claim_pending', 'returned', 'closed'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidReportSecrets(data) {
+      return data.keys().hasAll(['reportId', 'reporterId', 'additionalDetails', 'contactPreference', 'updatedAt']) &&
+        data.keys().hasOnly(['reportId', 'reporterId', 'additionalDetails', 'contactPreference', 'updatedAt']) &&
+        isValidId(data.reportId) &&
+        isValidId(data.reporterId) &&
+        data.additionalDetails is string && data.additionalDetails.size() <= 1000 &&
+        data.contactPreference is string && data.contactPreference.size() <= 120 &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidMatch(data) {
+      return data.keys().hasAll([
+          'matchId', 'lostReportId', 'foundReportId', 'lostReporterId', 'foundReporterId',
+          'lostItemName', 'foundItemName', 'confidenceScore', 'confidenceTier',
+          'breakdown', 'status', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'matchId', 'lostReportId', 'foundReportId', 'lostReporterId', 'foundReporterId',
+          'lostItemName', 'foundItemName', 'confidenceScore', 'confidenceTier',
+          'breakdown', 'status', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.matchId) &&
+        isValidId(data.lostReportId) &&
+        isValidId(data.foundReportId) &&
+        isValidId(data.lostReporterId) &&
+        isValidId(data.foundReporterId) &&
+        data.lostItemName is string && data.lostItemName.size() >= 1 && data.lostItemName.size() <= 120 &&
+        data.foundItemName is string && data.foundItemName.size() >= 1 && data.foundItemName.size() <= 120 &&
+        data.confidenceScore is number && data.confidenceScore >= 0 && data.confidenceScore <= 100 &&
+        data.confidenceTier in ['high', 'potential', 'low'] &&
+        data.breakdown is map &&
+        data.breakdown.keys().hasOnly(['category', 'name', 'keywords', 'description', 'location', 'date', 'characteristics']) &&
+        data.status in ['suggested', 'claim_initiated', 'dismissed', 'resolved'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidClaim(data) {
+      return data.keys().hasAll([
+          'claimId', 'reportId', 'reportType', 'itemName', 'claimantId',
+          'claimantName', 'reportOwnerId', 'ownershipProof', 'matchId',
+          'status', 'adminNote', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'claimId', 'reportId', 'reportType', 'itemName', 'claimantId',
+          'claimantName', 'reportOwnerId', 'ownershipProof', 'matchId',
+          'status', 'adminNote', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.claimId) &&
+        isValidId(data.reportId) &&
+        data.reportType in ['lost', 'found'] &&
+        data.itemName is string && data.itemName.size() >= 1 && data.itemName.size() <= 120 &&
+        isValidId(data.claimantId) &&
+        data.claimantName is string && data.claimantName.size() >= 1 && data.claimantName.size() <= 100 &&
+        isValidId(data.reportOwnerId) &&
+        data.ownershipProof is string && data.ownershipProof.size() >= 5 && data.ownershipProof.size() <= 1200 &&
+        data.matchId is string && data.matchId.size() <= 128 &&
+        data.status in ['pending', 'approved', 'rejected', 'returned'] &&
+        data.adminNote is string && data.adminNote.size() <= 500 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['notificationId', 'userId', 'title', 'message', 'type', 'relatedId', 'read', 'createdAt']) &&
+        data.keys().hasOnly(['notificationId', 'userId', 'title', 'message', 'type', 'relatedId', 'read', 'createdAt']) &&
+        isValidId(data.notificationId) &&
+        isValidId(data.userId) &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 140 &&
+        data.message is string && data.message.size() >= 1 && data.message.size() <= 500 &&
+        data.type in ['match', 'claim', 'system', 'return'] &&
+        data.relatedId is string && data.relatedId.size() <= 128 &&
+        data.read is bool &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidSupportTicket(data) {
+      return data.keys().hasAll(['ticketId', 'userId', 'subject', 'category', 'message', 'status', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['ticketId', 'userId', 'subject', 'category', 'message', 'status', 'createdAt', 'updatedAt']) &&
+        isValidId(data.ticketId) &&
+        isValidId(data.userId) &&
+        data.subject is string && data.subject.size() >= 3 && data.subject.size() <= 160 &&
+        data.category in [
+          'Account & Verification',
+          'Report Issue',
+          'Claim Dispute',
+          'Campus Security Desk',
+          'Technical Feedback'
+        ] &&
+        data.message is string && data.message.size() >= 10 && data.message.size() <= 1500 &&
+        data.status in ['open', 'in_review', 'resolved'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // Users Public Directory (no PII)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId);
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserPublic(incoming()) &&
+        incoming().uid == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isSignedIn() &&
+        isValidId(userId) &&
+        isValidUserPublic(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isAdmin() ||
+          (
+            isOwner(userId) &&
+            incoming().role == existing().role &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'department', 'photoURL', 'updatedAt'])
+          )
+        );
+
+      // Private PII isolated to owner and admin
+      match /private/info {
+        allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow list: if false;
+        allow create: if isOwner(userId) &&
+          isValidId(userId) &&
+          isValidUserPrivate(incoming()) &&
+          incoming().uid == request.auth.uid &&
+          incoming().updatedAt == request.time;
+        allow update: if isSignedIn() &&
+          isValidId(userId) &&
+          isValidUserPrivate(incoming()) &&
+          incoming().uid == existing().uid &&
+          incoming().updatedAt == request.time &&
+          (
+            isAdmin() ||
+            (
+              isOwner(userId) &&
+              incoming().diff(existing()).affectedKeys().hasOnly(['email', 'phone', 'campusId', 'updatedAt'])
+            )
+          );
+      }
+    }
+
+    // Admin Role Registry
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin() && isValidId(userId);
+    }
+
+    // Public Lost & Found Reports
+    match /reports/{reportId} {
+      allow get: if isSignedIn() && isValidId(reportId);
+      allow list: if isSignedIn() && resource.data.status in ['open', 'matched', 'claim_pending', 'returned', 'closed'];
+      allow create: if isVerified() &&
+        isValidId(reportId) &&
+        isValidReport(incoming()) &&
+        incoming().reporterId == request.auth.uid &&
+        incoming().reportId == reportId &&
+        incoming().status == 'open' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerified() &&
+        isValidId(reportId) &&
+        isValidReport(incoming()) &&
+        incoming().reporterId == existing().reporterId &&
+        incoming().reportId == existing().reportId &&
+        incoming().type == existing().type &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isAdmin() ||
+          (
+            existing().status != 'returned' &&
+            existing().status != 'closed' &&
+            (
+              (
+                existing().reporterId == request.auth.uid &&
+                incoming().diff(existing()).affectedKeys().hasOnly([
+                  'itemName', 'category', 'description', 'location',
+                  'eventDate', 'eventTime', 'color', 'characteristics',
+                  'keywords', 'photoURL', 'status', 'updatedAt'
+                ])
+              ) ||
+              (
+                incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+                incoming().status in ['matched', 'claim_pending']
+              )
+            )
+          )
+        );
+      allow delete: if isVerified() &&
+        isValidId(reportId) &&
+        (isAdmin() || (existing().reporterId == request.auth.uid && existing().status == 'open'));
+
+      // Protected verification details hidden from public discovery
+      match /private/secrets {
+        allow get: if isSignedIn() &&
+          isValidId(reportId) &&
+          (get(/databases/$(database)/documents/reports/$(reportId)).data.reporterId == request.auth.uid || isAdmin());
+        allow list: if false;
+        allow create: if isVerified() &&
+          isValidId(reportId) &&
+          isValidReportSecrets(incoming()) &&
+          incoming().reporterId == request.auth.uid &&
+          incoming().reportId == reportId &&
+          incoming().updatedAt == request.time &&
+          exists(/databases/$(database)/documents/reports/$(reportId)) &&
+          get(/databases/$(database)/documents/reports/$(reportId)).data.reporterId == request.auth.uid;
+        allow update: if isVerified() &&
+          isValidId(reportId) &&
+          isValidReportSecrets(incoming()) &&
+          incoming().reporterId == existing().reporterId &&
+          incoming().reportId == existing().reportId &&
+          incoming().updatedAt == request.time &&
+          (
+            isAdmin() ||
+            (
+              existing().reporterId == request.auth.uid &&
+              incoming().diff(existing()).affectedKeys().hasOnly(['additionalDetails', 'contactPreference', 'updatedAt'])
+            )
+          );
+      }
+    }
+
+    // Smart Matching Engine Records
+    match /matches/{matchId} {
+      allow get: if isSignedIn() &&
+        isValidId(matchId) &&
+        (existing().lostReporterId == request.auth.uid || existing().foundReporterId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() &&
+        (resource.data.lostReporterId == request.auth.uid || resource.data.foundReporterId == request.auth.uid || isAdmin());
+      allow create: if isVerified() &&
+        isValidId(matchId) &&
+        isValidMatch(incoming()) &&
+        incoming().matchId == matchId &&
+        (incoming().lostReporterId == request.auth.uid || incoming().foundReporterId == request.auth.uid || isAdmin()) &&
+        exists(/databases/$(database)/documents/reports/$(incoming().lostReportId)) &&
+        exists(/databases/$(database)/documents/reports/$(incoming().foundReportId)) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerified() &&
+        isValidId(matchId) &&
+        isValidMatch(incoming()) &&
+        incoming().matchId == existing().matchId &&
+        incoming().lostReportId == existing().lostReportId &&
+        incoming().foundReportId == existing().foundReportId &&
+        incoming().lostReporterId == existing().lostReporterId &&
+        incoming().foundReporterId == existing().foundReporterId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isAdmin() ||
+          (
+            (existing().lostReporterId == request.auth.uid || existing().foundReporterId == request.auth.uid) &&
+            existing().status != 'resolved' &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          )
+        );
+    }
+
+    // Ownership Claims & Verification Workflow
+    match /claims/{claimId} {
+      allow get: if isSignedIn() &&
+        isValidId(claimId) &&
+        (existing().claimantId == request.auth.uid || existing().reportOwnerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() &&
+        (resource.data.claimantId == request.auth.uid || resource.data.reportOwnerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() &&
+        isValidId(claimId) &&
+        isValidClaim(incoming()) &&
+        incoming().claimId == claimId &&
+        incoming().claimantId == request.auth.uid &&
+        incoming().status == 'pending' &&
+        incoming().adminNote == '' &&
+        exists(/databases/$(database)/documents/reports/$(incoming().reportId)) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerified() &&
+        isValidId(claimId) &&
+        isValidClaim(incoming()) &&
+        incoming().claimId == existing().claimId &&
+        incoming().reportId == existing().reportId &&
+        incoming().claimantId == existing().claimantId &&
+        incoming().reportOwnerId == existing().reportOwnerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isAdmin() ||
+          (
+            existing().status != 'returned' &&
+            existing().status != 'rejected' &&
+            (
+              (
+                existing().reportOwnerId == request.auth.uid &&
+                existing().status == 'pending' &&
+                incoming().status in ['approved', 'rejected'] &&
+                incoming().diff(existing()).affectedKeys().hasOnly(['status', 'adminNote', 'updatedAt'])
+              ) ||
+              (
+                (existing().claimantId == request.auth.uid || existing().reportOwnerId == request.auth.uid) &&
+                existing().status == 'approved' &&
+                incoming().status == 'returned' &&
+                incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+              )
+            )
+          )
+        );
+    }
+
+    // Private User Notifications
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() &&
+        isValidId(notificationId) &&
+        (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() &&
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isVerified() &&
+        isValidId(notificationId) &&
+        isValidNotification(incoming()) &&
+        incoming().notificationId == notificationId &&
+        incoming().read == false &&
+        incoming().createdAt == request.time;
+      allow update: if isSignedIn() &&
+        isValidId(notificationId) &&
+        isValidNotification(incoming()) &&
+        incoming().notificationId == existing().notificationId &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        (
+          isAdmin() ||
+          (
+            existing().userId == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['read'])
+          )
+        );
+      allow delete: if isSignedIn() &&
+        isValidId(notificationId) &&
+        (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Help & Support Tickets
+    match /supportTickets/{ticketId} {
+      allow get: if isSignedIn() &&
+        isValidId(ticketId) &&
+        (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() &&
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isVerified() &&
+        isValidId(ticketId) &&
+        isValidSupportTicket(incoming()) &&
+        incoming().ticketId == ticketId &&
+        incoming().userId == request.auth.uid &&
+        incoming().status == 'open' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerified() &&
+        isValidId(ticketId) &&
+        isValidSupportTicket(incoming()) &&
+        incoming().ticketId == existing().ticketId &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+    }
+  }
+}

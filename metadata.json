@@ -1,0 +1,6 @@
+{
+  "name": "FINDIT – Smart Campus Lost & Found",
+  "description": "Cinematic 3D technology startup product launch experience for FINDIT – Smart Campus Lost & Found.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
